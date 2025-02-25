@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results Generator</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        /* A4 Page Format */
+        @page {
+            size: A4 portrait;
+            margin: 2cm;
+        }
+
+        .container {
+            width: 21cm;
+            min-height: 29.7cm;
+            margin: 0 auto;
+            padding: 2cm;
+            background: white;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5cm;
+        }
+
+        .header img {
+            width: 150px;
+            margin-right: 20px;
+        }
+
+        .institution-info {
+            flex: 1;
+            text-align: right;
+            max-width: calc(100% - 170px); /* Prevent overflow */
+        }
+
+        .header h1 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 11pt;
+            margin: 5px 0;
+            line-height: 1.15;
+        }
+
+        /* Input Form */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 11pt;
+        }
+
+        /* Subjects Table */
+        #subjectsTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            table-layout: fixed; /* Prevent overflow */
+        }
+
+        #subjectsTable th, #subjectsTable td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+            word-wrap: break-word; /* Handle long text */
+        }
+
+        #subjectsTable th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        #subjectsTable input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11pt;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Print Button */
+        #printButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable, #printable * {
+                visibility: visible;
+            }
+            #printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 2cm;
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Input Form -->
+        <div class="input-section">
+            <div class="header">
+                <img src="file:///C:/Users/abdul/OneDrive/الصور/ea-inst-logo-uow-wollongong-malaysia.webp" alt="University Logo">
+                <div class="institution-info">
+                    <h1>UOW Malaysia KDU University College Sdn Bhd</h1>
+                    <p>Jalan Kontraktor U1/14, Seksyen U1, 40150 Shah Alam, Selangor Darul Ehsan.</p>
+                    <p>Phone: +(60-3) 5565-0538 | Fax: +(60-3) 5565-0539</p>
+                    <p>Email: enquiry@uowmkdu.edu.my | Website: www.uowmkdu.edu.my</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Student Name:</label>
+                <input type="text" id="studentName">
+            </div>
+            <div class="input-group">
+                <label>Student ID:</label>
+                <input type="text" id="studentId">
+            </div>
+            <div class="input-group">
+                <label>Program:</label>
+                <input type="text" id="program">
+            </div>
+            <div class="input-group">
+                <label>Semester:</label>
+                <input type="text" id="semester">
+            </div>
+
+            <table id="subjectsTable">
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Description</th>
+                        <th>Grade</th>
+                        <th>Credit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button onclick="addRow()">Add Subject</button>
+            <button onclick="generateNotification()">Generate Notification</button>
+        </div>
+    </div>
+
+    <script>
+        function addRow() {
+            const table = document.querySelector('#subjectsTable tbody');
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            `;
+        }
+
+        function calculateGPA(grades, credits) {
+            const gradePoints = {
+                'A+': 4.0, 'A': 4.0, 'A-': 3.67, 'B+': 3.33,
+                'B': 3.0, 'B-': 2.67, 'C+': 2.33, 'C': 2.0,
+                'D': 1.0, 'F': 0.0
+            };
+            let totalPoints = 0, totalCredits = 0;
+            
+            grades.forEach((grade, index) => {
+                const gp = gradePoints[grade.toUpperCase()] || 0;
+                const credit = parseFloat(credits[index]) || 0;
+                totalPoints += gp * credit;
+                totalCredits += credit;
+            });
+            
+            return totalCredits ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+        }
+
+        function validateInputs() {
+            const requiredFields = ['studentName', 'studentId', 'program', 'semester'];
+            for (const field of requiredFields) {
+                if (!document.getElementById(field).value.trim()) {
+                    alert(`Please fill out the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field.`);
+                    return false;
+                }
+            }
+            const rows = document.querySelectorAll('#subjectsTable tbody tr');
+            for (const row of rows) {
+                const inputs = row.querySelectorAll('input');
+                for (const input of inputs) {
+                    if (!input.value.trim()) {
+                        alert('Please fill out all subject fields.');
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function generateNotification() {
+    if (!validateInputs()) return;
+
+    // Collect data
+    const studentData = {
+        name: document.getElementById('studentName').value,
+        id: document.getElementById('studentId').value,
+        program: document.getElementById('program').value,
+        semester: document.getElementById('semester').value,
+        subjects: []
+    };
+
+    // Get subjects
+    const grades = [];
+    const credits = [];
+    document.querySelectorAll('#subjectsTable tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('input');
+        studentData.subjects.push({
+            code: cells[0].value,
+            desc: cells[1].value,
+            grade: cells[2].value,
+            credit: cells[3].value
+        });
+        grades.push(cells[2].value);
+        credits.push(cells[3].value);
+    });
+
+    // Calculate GPA
+    const gpa = calculateGPA(grades, credits);
+
+    // Get current date
+    const currentDate = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = currentDate.toLocaleDateString('en-US', options);
+
+    // Build printable content
+    const printableContent = `
+        <div class="header" style="display: flex; align-items: center; margin-bottom: 1.5cm;">
+            <img src="file:///C:/Users/abdul/OneDrive/الصور/ea-inst-logo-uow-wollongong-malaysia.webp" alt="University Logo" style="width: 150px; margin-right: 20px;">
+            <div class="institution-info" style="flex: 1; text-align: right; max-width: calc(100% - 170px);">
+                <h1 style="font-size: 16pt; font-weight: bold; margin: 0;">UOW Malaysia KDU University College Sdn Bhd</h1>
+                <p style="font-size: 11pt; margin: 5px 0; line-height: 1.15;">Jalan Kontraktor U1/14, Seksyen U1, 40150 Shah Alam, Selangor Darul Ehsan.</p>
+                <p style="font-size: 11pt; margin: 5px 0; line-height: 1.15;">Phone: +(60-3) 5565-0538 | Fax: +(60-3) 5565-0539</p>
+                <p style="font-size: 11pt; margin: 5px 0; line-height: 1.15;">Email: enquiry@uowmkdu.edu.my | Website: www.uowmkdu.edu.my</p>
+            </div>
+        </div>
+
+        <h2 style="text-align: center; margin: 1cm 0; font-size: 16pt; font-weight: bold;">BUSINESS DEPARTMENT - NOTIFICATION OF EXAMINATION RESULTS</h2>
+
+        <div style="margin-bottom: 1cm;">
+            <p style="text-align: right; font-size: 11pt;">Date: ${formattedDate}</p>
+            <p style="font-size: 11pt;"><strong>Student No:</strong> ${studentData.id}</p>
+            <p style="font-size: 11pt;"><strong>Student Name:</strong> ${studentData.name}</p>
+            <p style="font-size: 11pt;"><strong>Program:</strong> ${studentData.program}</p>
+            <p style="font-size: 11pt;"><strong>Semester:</strong> ${studentData.semester}</p>
+        </div>
+
+        <table border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 1cm;">
+            <tr>
+                <th style="background-color: #f2f2f2; font-weight: bold; padding: 8px; text-align: center;">Subject Code</th>
+                <th style="background-color: #f2f2f2; font-weight: bold; padding: 8px; text-align: center;">Description</th>
+                <th style="background-color: #f2f2f2; font-weight: bold; padding: 8px; text-align: center;">Grade</th>
+                <th style="background-color: #f2f2f2; font-weight: bold; padding: 8px; text-align: center;">Credit</th>
+            </tr>
+            ${studentData.subjects.map(sub => `
+                <tr>
+                    <td style="padding: 8px; text-align: center;">${sub.code}</td>
+                    <td style="padding: 8px; text-align: center;">${sub.desc}</td>
+                    <td style="padding: 8px; text-align: center;">${sub.grade}</td>
+                    <td style="padding: 8px; text-align: center;">${sub.credit}</td>
+                </tr>
+            `).join('')}
+        </table>
+
+        <div style="margin-bottom: 1cm;">
+            <p style="font-size: 11pt;"><strong>GPA:</strong> ${gpa}</p>
+        </div>
+
+<div style="margin-bottom: 1cm;">
+    <h4>Grading Scheme (Grade Points)</h4>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">A+: 85.00 - 100.00 (4.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;">BAR: Barred (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">A: 80.00 - 84.99 (4.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;">IP: In Progress (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">A-: 75.00 - 79.99 (3.67)</td>
+            <td style="padding: 5px; text-align: left; border: none;">P: Passed (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">B+: 70.00 - 74.99 (3.33)</td>
+            <td style="padding: 5px; text-align: left; border: none;">XF: Absent (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">B: 65.00 - 69.99 (3.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;">W: Withdrawal (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">B-: 60.00 - 64.99 (2.67)</td>
+            <td style="padding: 5px; text-align: left; border: none;">CTR: Credit Transfer (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">C+: 55.00 - 59.99 (2.33)</td>
+            <td style="padding: 5px; text-align: left; border: none;">PA: Extraordinary Pass (50.00 - 100.00) (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">C: 50.00 - 54.99 (2.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;">FA: Extraordinary Fail (0.00 - 49.99) (0.00)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">D: 40.00 - 49.99 (1.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;">CTA: Credit Transfer (APEL)</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; text-align: left; border: none;">F: 0.00 - 39.99 (0.00)</td>
+            <td style="padding: 5px; text-align: left; border: none;"></td>
+        </tr>
+    </table>
+</div>
+
+
+        <div style="margin-bottom: 1cm;">
+            <p style="font-size: 11pt;"><strong>Note:</strong> For Resit/Retake subjects, only the last grade is computed into the Cumulative Average.</p>
+        </div>
+
+        <div style="text-align: left; font-size: 11pt; margin-bottom: 1cm;">
+            <p>This is a system-generated notification and does not require signatory validation.</p>
+        </div>
+
+        <div style="text-align: right; font-size: 11pt;">
+            <p>Date: ${formattedDate}</p>
+        </div>
+        <button id="printButton" onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer;">Print Result</button>
+    `;
+    // Open result in a new tab
+    const newWindow = window.open();
+    newWindow.document.write(`
+        <html>
+            <head>
+                <title>Exam Results Notification</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 2cm;
+                        background: white;
+                    }
+                    @page {
+                        size: A4 portrait;
+                        margin: 2cm;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 1cm;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: center;
+                    }
+                    th {
+                        background-color: #f2f2f2;
+                        font-weight: bold;
+                    }
+                    button {
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background-color: #28a745;
+                        color: white;
+                        border: none;
+                        cursor: pointer;
+                    }
+                </style>
+            </head>
+            <body>
+                ${printableContent}
+            </body>
+        </html>
+    `);
+    newWindow.document.close();
+}
+    </script>
+</body>
+</html>
